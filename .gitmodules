@@ -1,0 +1,21 @@
+[submodule "vendor/pdoc"]
+	path = vendor/pdoc
+	url = git://github.com/tobie/pdoc.git
+[submodule "vendor/prototype"]
+	path = vendor/prototype
+	url = git://github.com/sstephenson/prototype
+[submodule "vendor/sprockets"]
+	path = vendor/sprockets
+	url = git://github.com/sstephenson/sprockets.git
+[submodule "vendor/unittest_js"]
+	path = vendor/unittest_js
+	url = git://github.com/tobie/unittest_js.git
+[submodule "vendor/wysihat"]
+	path = vendor/wysihat
+	url = git://github.com/josh/wysihat.git
+[submodule "vendor/yui2"]
+	path = vendor/yui2
+	url = git://github.com/mscottford/yui2.git
+[submodule "vendor/builder"]
+	path = vendor/builder
+	url = git://github.com/yui/builder.git
