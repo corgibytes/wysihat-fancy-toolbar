@@ -24,7 +24,7 @@ task :update_submodules do
       sub_module_name = match[1]
       current = FileUtils.pwd
       FileUtils.cd(sub_module_name)
-      system('git checkout master')
+      system('git checkout master > /dev/null 2>/dev/null')
       FileUtils.cd(current)
     end
   end
