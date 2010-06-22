@@ -47,9 +47,45 @@
 
     <script src="../dist/prototype.js" type="text/javascript" charset="utf-8"></script>
     <script src="../dist/wysihat.js" type="text/javascript" charset="utf-8"></script>
-    <script src="../dist/wysihat.yahoo_toolbar.js" type="text/javascript" charset="utf-8"></script>
+    
+    <script src="../dist/jquery.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../dist/jquery-ui.js" type="text/javascript" charset="utf-8"></script>
+    
     <script type="text/javascript" charset="utf-8">
-      
+      $jq = jQuery.noConflict();
     </script>
+    
+    <script type="text/javascript" charset="utf-8">
+      var textarea, editor;
+
+      document.on("dom:loaded", function() {
+        editor = WysiHat.Editor.attach('sample_editor');
+        
+        var toolbar = new WysiHat.Toolbar(editor);
+        toolbar.addButtonSet(WysiHat.Toolbar.ButtonSets.Basic);
+
+        editor.on("field:change", function(event) {
+          $('sample_formatted_contents').setValue(WysiHat.Formatting.getApplicationMarkupFrom(editor));
+          $('sample_raw_contents').setValue(event.element().innerHTML);
+        });
+      });
+    </script>
+    
+    
+    <link rel="stylesheet" href="../dist/jquery-ui/css/smoothness/jquery-ui.css" type="text/css" media="screen" title="no title" charset="utf-8">
   </head>
+  <body>
+    <form id="sample_editor_form" action="#" method="post" style="width: 500px;">
+      <h3>Editor</h3>
+      <textarea id="sample_editor"></textarea>
+      
+      <h3>Formatted Contents</h3>
+      <textarea id="sample_formatted_contents" disabled></textarea>
+      
+      <div class="hideable">
+        <h3>Raw Contents</h3>
+        <textarea id="sample_raw_contents" disabled></textarea>
+      </div>
+    </form>
+  </body>
 </html>
