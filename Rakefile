@@ -18,6 +18,16 @@ desc 'Update git submodules'
 task :update_submodules do
   system('git submodule init')
   system('git submodule update')
+  `git submodule`.each_line do |line|
+    match = line.match(/.* (.*) \([^\)]*\)/)
+    unless match.nil?
+      sub_module_name = match[1]
+      current = FileUtils.pwd
+      FileUtils.cd(sub_module_name)
+      system('git checkout master')
+      FileUtils.cd(current)
+    end
+  end
 end
 
 namespace :sprocketize do
