@@ -1,22 +1,13 @@
 /** section: wysihat
- *  class WysiHat.YahooToolbar
+ *  class WysiHat.FancyToolbar
 **/
 
-//= require '../../vendor/yui2/build/yahoo/yahoo.js'
-//= require '../../vendor/yui2/build/dom/dom.js'
-//= require '../../vendor/yui2/build/element/element.js'
-//= require '../../vendor/yui2/build/event/event.js'
-//= require '../../vendor/yui2/build/container/container_core.js
-//= require '../../vendor/yui2/build/menu/menu.js'
-//= require '../../vendor/yui2/build/button/button.js'
-//= require '../../vendor/yui2/build/editor/editor.js'
-
-WysiHat.YahooToolbar = Class.create((function() {
+WysiHat.FancyToolbar = Class.create((function() {
   /**
-   *  new WysiHat.YahooToolbar(editor)
+   *  new WysiHat.FancyToolbar(editor)
    *  - editor (WysiHat.Editor): the editor object that you want to attach to
    *
-   *  Creates a toolbar element above the editor. The WysiHat.YahooToolbar object
+   *  Creates a toolbar element above the editor. The WysiHat.FancyToolbar object
    *  has many helper methods to easily add buttons to the toolbar.
    *
   **/
@@ -26,7 +17,7 @@ WysiHat.YahooToolbar = Class.create((function() {
   }
 
   /**
-   *  WysiHat.YahooToolbar#createToolbarElement() -> Element
+   *  WysiHat.FancyToolbar#createToolbarElement() -> Element
    *
    *  Creates a toolbar container element and inserts it right above the
    *  original textarea element. The element is a div with the class
