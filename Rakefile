@@ -9,7 +9,7 @@ DIST_DIR = File.join(ROOT, 'dist')
 task :default => :dist
 
 desc 'Builds the distribution.'
-task :dist => ['sprocketize:prototype', 'sprocketize:wysihat', 'sprocketize:toolbar']
+task :dist => [:jquery, :jquery_ui, 'sprocketize:prototype', 'sprocketize:wysihat', 'sprocketize:toolbar']
 
 desc 'Remove files created during the build'
 task :clean => ['sprocketize:clean']
@@ -69,5 +69,22 @@ namespace :sprocketize do
     )
 
     secretary.concatenation.save_to(File.join(DIST_DIR, 'prototype.js'))
+  end
+end
+
+task :jquery => ['sprocketize:dist_dir', File.join(DIST_DIR, 'jquery.js')]
+file File.join(DIST_DIR, 'jquery.js') => [File.join(ROOT, 'vendor', 'jquery', 'jquery-1.4.2.min.js')] do |task|
+  FileUtils.cp task.prerequisites[0], task.name
+end
+
+task :jquery_ui => ['sprocketize:dist_dir', File.join(DIST_DIR, 'jquery-ui.js'), File.join(DIST_DIR, 'jquery-ui')]
+file File.join(DIST_DIR, 'jquery-ui.js') => [File.join(ROOT, 'vendor', 'jquery-ui', 'js', 'jquery-ui-1.8.2.min.js')] do |task|
+  FileUtils.cp task.prerequisites[0], task.name
+end
+file File.join(DIST_DIR, 'jquery-ui') => [File.join(ROOT, 'vendor', 'jquery-ui', 'css')] do |task|
+  FileUtils.mkdir_p task.name
+  FileUtils.cp_r task.prerequisites[0], File.join(task.name, 'css')
+  Dir.glob(File.join(task.name, 'css', '**', 'jquery-ui-1.8.2.css')) do |dir|
+    FileUtils.mv dir, dir.gsub('jquery-ui-1.8.2.css', 'jquery-ui.css')
   end
 end
