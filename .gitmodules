@@ -13,6 +13,3 @@
 [submodule "vendor/wysihat"]
 	path = vendor/wysihat
 	url = git://github.com/josh/wysihat.git
-[submodule "vendor/builder"]
-	path = vendor/builder
-	url = git://github.com/yui/builder.git
