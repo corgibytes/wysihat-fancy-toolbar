@@ -10,6 +10,3 @@
 [submodule "vendor/unittest_js"]
 	path = vendor/unittest_js
 	url = git://github.com/tobie/unittest_js.git
-[submodule "vendor/wysihat"]
-	path = vendor/wysihat
-	url = git://github.com/josh/wysihat.git
