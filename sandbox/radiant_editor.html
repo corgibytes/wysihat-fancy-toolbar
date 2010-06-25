@@ -59,38 +59,7 @@
       $jq = jQuery.noConflict();
     </script>
     
-    <script type="text/javascript" charset="utf-8">
-      FancyToolbar.ButtonTypes = {
-        radio: 'radio',
-        checkbox: 'checkbox',
-        button: 'button',
-        link: 'link'
-      };
-      FancyToolbar.ButtonSets = {};
-      FancyToolbar.ButtonSets.Basic = $A([
-        { 
-          name: 'paragraph-styles',
-          buttons: [
-            { label: 'H1', command: 'formatblock', parameter: 'h1', type: FancyToolbar.ButtonTypes.radio },
-            { label: 'H2', command: 'formatblock', parameter: 'h2', type: FancyToolbar.ButtonTypes.radio },
-            { label: 'H3', command: 'formatblock', parameter: 'h3', type: FancyToolbar.ButtonTypes.radio },
-            { label: 'H4', command: 'formatblock', parameter: 'h4', type: FancyToolbar.ButtonTypes.radio },
-            { label: 'H5', command: 'formatblock', parameter: 'h5', type: FancyToolbar.ButtonTypes.radio },
-            { label: 'H6', command: 'formatblock', parameter: 'h6', type: FancyToolbar.ButtonTypes.radio },
-            { label: 'P', command: 'formatblock', parameter: 'p', type: FancyToolbar.ButtonTypes.radio }
-          ]
-        },
-        { 
-          name: 'text-formatting',
-          buttons: [
-            { label: 'Bold', type: FancyToolbar.ButtonTypes.checkbox },
-            { label: 'Underline', type: FancyToolbar.ButtonTypes.checkbox },
-            { label: 'Italics', type: FancyToolbar.ButtonTypes.checkbox }
-          ]
-        },
-        { label: 'Link', type: FancyToolbar.ButtonTypes.button }
-      ]);
-      
+    <script type="text/javascript" charset="utf-8">      
       FancyToolbar = Class.create(WysiHat.Toolbar, (function() {
         function addButtonSet(set) {
           $A(set).each(function(entry) {
@@ -103,10 +72,9 @@
               jQuery(buttonGroupElement).buttonset();
             }
             else {
-              if (isCommandDefined(entry)) {
+              if (getButtonCommand(entry)) {
                 this.createHandlerForCommand(entry);
               }
-              if (!)
               this.addButton(entry);
             }
           }.bind(this));
@@ -255,16 +223,40 @@
           updateButtonState: updateButtonState
         };
       })());
+      
+      FancyToolbar.ButtonTypes = {
+        radio: 'radio',
+        checkbox: 'checkbox',
+        button: 'button',
+        link: 'link'
+      };
+      
+      FancyToolbar.ButtonSets = {};
+      FancyToolbar.ButtonSets.Basic = $A([
+        { 
+          name: 'paragraph-styles',
+          buttons: [
+            { label: 'H1', command: 'formatblock', parameter: 'h1', type: FancyToolbar.ButtonTypes.radio },
+            { label: 'H2', command: 'formatblock', parameter: 'h2', type: FancyToolbar.ButtonTypes.radio },
+            { label: 'H3', command: 'formatblock', parameter: 'h3', type: FancyToolbar.ButtonTypes.radio },
+            { label: 'H4', command: 'formatblock', parameter: 'h4', type: FancyToolbar.ButtonTypes.radio },
+            { label: 'H5', command: 'formatblock', parameter: 'h5', type: FancyToolbar.ButtonTypes.radio },
+            { label: 'H6', command: 'formatblock', parameter: 'h6', type: FancyToolbar.ButtonTypes.radio },
+            { label: 'P', command: 'formatblock', parameter: 'p', type: FancyToolbar.ButtonTypes.radio }
+          ]
+        },
+        { 
+          name: 'text-formatting',
+          buttons: [
+            { label: 'Bold', type: FancyToolbar.ButtonTypes.checkbox },
+            { label: 'Underline', type: FancyToolbar.ButtonTypes.checkbox },
+            { label: 'Italics', type: FancyToolbar.ButtonTypes.checkbox }
+          ]
+        },
+        { label: 'Link', type: FancyToolbar.ButtonTypes.button }
+      ]);      
     </script>
-    
-    <script type="text/javascript" charset="utf-8">
-      $jq(document).ready(function() {
-        $jq('#toolbar-paragraph-styles').buttonset();
-        $jq('#text-formatting').buttonset();
-        $jq('#link').button();
-      });
-    </script>
-    
+        
     <script type="text/javascript" charset="utf-8">
       EditorExtensions = (function(window) {        
         return {
@@ -289,23 +281,12 @@
         editor = WysiHat.Editor.attach('sample_editor');
         Object.extend(editor, EditorExtensions);
         
-        var toolbar = new WysiHat.Toolbar(editor);
+        var fancyToolbar = new FancyToolbar(editor);
+        fancyToolbar.addButtonSet(FancyToolbar.ButtonSets.Basic);
         
-        var boldButton = $jq('#toolbar #bold').first();
-        var boldLabel = $jq("#toolbar label[for = 'bold']")
-        boldLabel.mousedown(function(event) {
-          editor.boldSelection();
-        });
-        editor.on('selection:change', function(event) {
-          if (editor.boldSelected()) {
-            boldButton.attr('checked','true');
-            boldButton.button('refresh');
-          } else {
-            boldButton.removeAttr('checked');
-            boldButton.button('refresh');
-          }
-        });        
-
+        var toolbar = new WysiHat.Toolbar(editor);
+        toolbar.addButtonSet(WysiHat.Toolbar.ButtonSets.Basic);        
+        
         editor.on("field:change", function(event) {
           $('sample_formatted_contents').setValue(editor.output());
           $('sample_raw_contents').setValue(event.element().innerHTML);
@@ -319,23 +300,6 @@
   <body>
     <form id="sample_editor_form" action="#" method="post" style="width: 500px;">
       <h3>Editor</h3>
-      <span id="toolbar" class="ui-widget ui-corner-all">
-        <span id="toolbar-paragraph-styles">
-    			<input type="radio" id="h1" name="paragraph-style" /><label for="h1">H1</label>
-    			<input type="radio" id="h2" name="paragraph-style" /><label for="h2">H2</label>
-    			<input type="radio" id="h3" name="paragraph-style" /><label for="h3">H3</label>          
-    			<input type="radio" id="h4" name="paragraph-style" /><label for="h4">H4</label>          
-    			<input type="radio" id="h5" name="paragraph-style" /><label for="h5">H5</label>          
-    			<input type="radio" id="h6" name="paragraph-style" /><label for="h6">H6</label>          
-    			<input type="radio" id="p" name="paragraph-style" checked="true" /><label for="p">P</label>          
-        </span>
-        <span id="text-formatting">
-      		<input type="checkbox" id="bold" /><label for="bold">B</label>
-      		<input type="checkbox" id="italics" /><label for="italics">I</label>
-      		<input type="checkbox" id="underline" /><label for="underline">U</label>          
-        </span>
-        <input type="checkbox" id="link" /><label for="link">Link</label>
-      </span>
       <textarea id="sample_editor"></textarea>
       
       <h3>Formatted Contents</h3>
