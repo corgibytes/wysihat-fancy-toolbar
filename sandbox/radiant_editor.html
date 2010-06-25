@@ -36,11 +36,15 @@
       .editor_toolbar .selected {
         color: red !important;
       }
+      
+      * {
+        font-size: 12px;
+      }
 
       h3 {
         font-family: verdana;
         font-weight: bold;
-        font-size: 10px;
+        font-size: 1.0em;
         color: #333;
       }
     </style>
@@ -56,27 +60,282 @@
     </script>
     
     <script type="text/javascript" charset="utf-8">
+      FancyToolbar.ButtonTypes = {
+        radio: 'radio',
+        checkbox: 'checkbox',
+        button: 'button',
+        link: 'link'
+      };
+      FancyToolbar.ButtonSets = {};
+      FancyToolbar.ButtonSets.Basic = $A([
+        { 
+          name: 'paragraph-styles',
+          buttons: [
+            { label: 'H1', command: 'formatblock', parameter: 'h1', type: FancyToolbar.ButtonTypes.radio },
+            { label: 'H2', command: 'formatblock', parameter: 'h2', type: FancyToolbar.ButtonTypes.radio },
+            { label: 'H3', command: 'formatblock', parameter: 'h3', type: FancyToolbar.ButtonTypes.radio },
+            { label: 'H4', command: 'formatblock', parameter: 'h4', type: FancyToolbar.ButtonTypes.radio },
+            { label: 'H5', command: 'formatblock', parameter: 'h5', type: FancyToolbar.ButtonTypes.radio },
+            { label: 'H6', command: 'formatblock', parameter: 'h6', type: FancyToolbar.ButtonTypes.radio },
+            { label: 'P', command: 'formatblock', parameter: 'p', type: FancyToolbar.ButtonTypes.radio }
+          ]
+        },
+        { 
+          name: 'text-formatting',
+          buttons: [
+            { label: 'Bold', type: FancyToolbar.ButtonTypes.checkbox },
+            { label: 'Underline', type: FancyToolbar.ButtonTypes.checkbox },
+            { label: 'Italics', type: FancyToolbar.ButtonTypes.checkbox }
+          ]
+        },
+        { label: 'Link', type: FancyToolbar.ButtonTypes.button }
+      ]);
+      
+      FancyToolbar = Class.create(WysiHat.Toolbar, (function() {
+        function addButtonSet(set) {
+          $A(set).each(function(entry) {
+            if (Object.isHash(entry)) {
+              buttonGroupElement = this.createButtonGroupElement(this.element, entry.name);
+              $A(entry.buttons).each(function(childButton) {
+                childButton.set('group', buttonGroupElement);
+              });
+              this.addButtonSet(entry.buttons)
+              jQuery(buttonGroupElement).buttonset();
+            }
+            else {
+              if (isCommandDefined(entry)) {
+                this.createHandlerForCommand(entry);
+              }
+              if (!)
+              this.addButton(entry);
+            }
+          }.bind(this));
+        }
+                
+        function getButtonCommand(button) {
+          return button.command || button.get('command');
+        }
+        
+        function getButtonCommandParameter(button) {
+          return button.parameter || button.get('parameter');
+        }
+        
+        function createHandlerForCommand(button) {
+          command = this.getButtonCommand(button);
+          parameter = this.getButtonCommandParameter(button);
+          handler = function(editor) {
+            editor.execCommand(command, false, parameter);
+          };
+        }
+        
+        function createButtonGroupElement(toolbar, groupName) {
+          var buttonGroup = new Element('span', { 'id': groupName });
+          toolbar.appendChild(buttonGroup);
+
+          return buttonGroup;          
+        }
+        
+        function getButtonType(button) {
+          return button.type || button.get('type') || FancyToolbar.ButtonTypes.link;
+        }
+                
+        function getButtonParent(button) {
+          return button.parent || button.get('parent');
+        }
+        
+        function getParentId(options) {
+          result = null;
+          if (getButtonParent()) {
+            result = getButtonParent().id;
+          }
+          return result;
+        }
+        
+        function getButtonName(options) {
+          return options.name || options.get('name');
+        }
+        
+        function getButtonLabel(options) {
+          return options.label || options.get('label');
+        }
+          
+        function createLinkButton(options) {
+          button = Element('a', { 'id': getButtonName(options), 'href': '#' });
+          button.update(getButtonLabel(button));
+          return button;
+        }
+        
+        function createRadioButton(options) {
+          return Element('input', { 
+            'type': 'radio', 
+            'id': getButtonName(options), 
+            'name': getParentId(options) || getButtonName(options)})
+        }
+        
+        function createCheckboxButton(options) {
+          return Element('input', {
+            'type': 'checkbox',
+            'id': getButtonName(options)
+          });
+        }
+        
+        function createButtonButton(options) {
+          button = Element('button', {
+            'id': getButtonName(options),
+            'name': getButtonName(options)
+          });
+          button.update(getButtonLabel(button));
+        }
+        
+        function createLabelFor(button, options) {
+          // <label for="h1">H1</label>
+          label = Element('label', {
+            'for': button.id,
+          });
+          label.update(getButtonLabel(options));
+        }
+        
+        function createButtonElement(toolbar, options) {
+          var button = null;
+          var label = null;
+          
+          buttonType = getButtonType(options);
+          if (buttonType == FancyButton.ButtonTypes.radio) {
+            button = createRadioButton(options);
+            label = createLabelFor(button, options);
+          } else if (butonType == FancyButton.ButtonTypes.checkbox) {
+            button = createCheckboxButton(options);
+            label = createLabelFor(button, options);
+          } else if (buttonType == FancyButton.ButtonTypes.button) {
+            button = createButtonButton(options);
+          } else if (buttonType == FancyButton.ButtonTypes.link) {
+            button = createLinkButton(options);
+          } else {
+            // in reality this should never happen, but let's make sure that we 
+            // at least know about it if it does
+            throw 'Unknown button type: ' + buttonType;
+          }
+
+          if (getButtonParent(options)) {
+            getButtonParent().appendChild(button);
+          } else {
+            toolbar.appendChild(button);            
+          }
+          
+          if (label) {
+            if (getButtonParent(options)) {
+              getButtonParent().appendChild(label);
+            } else {
+              toolbar.appendChild(label);
+            }
+          }
+          
+          if (!getButtonParent(options)) {
+            jQuery(button).button();
+          }
+
+          return button;
+        }
+        
+        function createToolbarElement(toolbar, options) {
+          var toolbar = new Element('span', { 'class': 'ui-widget ui-corner-all' });
+          this.editor.insert({ before: toolbar });
+          return toolbar;
+        }
+        
+        function updateButtonState(element, name, state) {
+          // todo
+        }
+        
+        return {
+          addButtonSet: addButtonSet,
+          createHandlerForCommand: createHandlerForCommand,
+          createButtonElement: createButtonElement,
+          createToolbarElement: createToolbarElement,
+          updateButtonState: updateButtonState
+        };
+      })());
+    </script>
+    
+    <script type="text/javascript" charset="utf-8">
+      $jq(document).ready(function() {
+        $jq('#toolbar-paragraph-styles').buttonset();
+        $jq('#text-formatting').buttonset();
+        $jq('#link').button();
+      });
+    </script>
+    
+    <script type="text/javascript" charset="utf-8">
+      EditorExtensions = (function(window) {        
+        return {
+          output: function() {
+            function sanitize(text) {
+              return text.sanitize({
+                tags: ['span', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'br', 'strong', 'em', 'u', 'a'],
+                attributes: ['id', 'href']
+              });            
+            }
+
+            return sanitize(this.innerHTML.formatHTMLOutput());
+          }
+        };
+      })(window);
+    </script>
+        
+    <script type="text/javascript" charset="utf-8">
       var textarea, editor;
 
       document.on("dom:loaded", function() {
         editor = WysiHat.Editor.attach('sample_editor');
+        Object.extend(editor, EditorExtensions);
         
         var toolbar = new WysiHat.Toolbar(editor);
-        toolbar.addButtonSet(WysiHat.Toolbar.ButtonSets.Basic);
+        
+        var boldButton = $jq('#toolbar #bold').first();
+        var boldLabel = $jq("#toolbar label[for = 'bold']")
+        boldLabel.mousedown(function(event) {
+          editor.boldSelection();
+        });
+        editor.on('selection:change', function(event) {
+          if (editor.boldSelected()) {
+            boldButton.attr('checked','true');
+            boldButton.button('refresh');
+          } else {
+            boldButton.removeAttr('checked');
+            boldButton.button('refresh');
+          }
+        });        
 
         editor.on("field:change", function(event) {
-          $('sample_formatted_contents').setValue(WysiHat.Formatting.getApplicationMarkupFrom(editor));
+          $('sample_formatted_contents').setValue(editor.output());
           $('sample_raw_contents').setValue(event.element().innerHTML);
         });
       });
     </script>
     
     
-    <link rel="stylesheet" href="../dist/jquery-ui/css/smoothness/jquery-ui.css" type="text/css" media="screen" title="no title" charset="utf-8">
+    <link rel="stylesheet" href="../dist/jquery-ui/css/smoothness/jquery-ui.css" type="text/css" media="screen" title="no title" charset="utf-8" />
   </head>
   <body>
     <form id="sample_editor_form" action="#" method="post" style="width: 500px;">
       <h3>Editor</h3>
+      <span id="toolbar" class="ui-widget ui-corner-all">
+        <span id="toolbar-paragraph-styles">
+    			<input type="radio" id="h1" name="paragraph-style" /><label for="h1">H1</label>
+    			<input type="radio" id="h2" name="paragraph-style" /><label for="h2">H2</label>
+    			<input type="radio" id="h3" name="paragraph-style" /><label for="h3">H3</label>          
+    			<input type="radio" id="h4" name="paragraph-style" /><label for="h4">H4</label>          
+    			<input type="radio" id="h5" name="paragraph-style" /><label for="h5">H5</label>          
+    			<input type="radio" id="h6" name="paragraph-style" /><label for="h6">H6</label>          
+    			<input type="radio" id="p" name="paragraph-style" checked="true" /><label for="p">P</label>          
+        </span>
+        <span id="text-formatting">
+      		<input type="checkbox" id="bold" /><label for="bold">B</label>
+      		<input type="checkbox" id="italics" /><label for="italics">I</label>
+      		<input type="checkbox" id="underline" /><label for="underline">U</label>          
+        </span>
+        <input type="checkbox" id="link" /><label for="link">Link</label>
+      </span>
       <textarea id="sample_editor"></textarea>
       
       <h3>Formatted Contents</h3>
