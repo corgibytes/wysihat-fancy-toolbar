@@ -56,7 +56,7 @@
     <script src="../dist/jquery-ui.js" type="text/javascript" charset="utf-8"></script>
     
     <script type="text/javascript" charset="utf-8">
-      $jq = jQuery.noConflict();
+      jQuery.noConflict();
     </script>
     
     <script type="text/javascript" charset="utf-8">      
@@ -67,35 +67,66 @@
               buttonGroupElement = this.createButtonGroupElement(this.element, entry.name);
               $A(entry.buttons).each(function(childButton) {
                 Object.extend(childButton, {
-                  group: buttonGroupElement
+                  groupElement: buttonGroupElement
                 });
               });
               this.addButtonSet(entry.buttons)
               jQuery(buttonGroupElement).buttonset();
             }
-            else {
-              if (getButtonCommand(entry)) {
+            else {              
+              if (entry.command) {
                 this.createHandlerForCommand(entry);
               }
               this.addButton(entry);
             }
           }.bind(this));
         }
-                
-        function getButtonCommand(button) {
-          return button.command;
-        }
-        
-        function getButtonCommandParameter(button) {
-          return button.parameter || button.get('parameter');
-        }
         
         function createHandlerForCommand(button) {
-          command = getButtonCommand(button);
-          parameter = getButtonCommandParameter(button);
+          var command = button.command;
+          var parameter = button.parameter;
           handler = function(editor) {
             editor.execCommand(command, false, parameter);
           };
+          Object.extend(button, {
+            handler: handler
+          });
+        }
+        
+        // added here to assist with testing, 
+        // the base toolbar behavior should be good enough
+        function addButton(options, handler) {
+          options = $H(options);
+
+          if (!options.get('name'))
+            options.set('name', options.get('label').toLowerCase());
+          var name = options.get('name');
+
+          var button = this.createButtonElement(this.element, options);
+
+          var handler = this.buttonHandler(name, options);
+          this.observeButtonClick(button, handler);
+
+          var handler = this.buttonStateHandler(name, options);
+          this.observeStateChanges(button, name, handler);
+        }        
+        
+        // same for this
+        function buttonHandler(name, options) {
+          if (options.handler) {
+            return options.handler;
+          } else if (options.get('handler')) {
+            return options.get('handler');
+          } else {
+            return function(editor) { editor.execCommand(name); };
+          }
+        }
+        
+        function observeButtonClick(element, handler) {
+          editor = this.editor;
+          jQuery("#toolbar label[for = '" + element.id + "']").mousedown(function() {
+            handler(editor);                        
+          });
         }
         
         function createButtonGroupElement(toolbar, groupName) {
@@ -109,8 +140,8 @@
           return button.type || button.get('type') || FancyToolbar.ButtonTypes.link;
         }
                 
-        function getButtonParent(button) {
-          return button.parent || button.get('parent');
+        function getButtonParent(options) {
+          return options.groupElement || options.get('groupElement');
         }
         
         function getParentId(options) {
@@ -126,7 +157,7 @@
         }
         
         function getButtonLabel(options) {
-          return options.label;
+          return options.label || options.get('label');
         }
           
         function createLinkButton(options) {
@@ -154,15 +185,16 @@
             'id': getButtonName(options),
             'name': getButtonName(options)
           });
-          button.update(getButtonLabel(button));
+          button.update(getButtonLabel(options));
+          return button;
         }
         
         function createLabelFor(button, options) {
-          // <label for="h1">H1</label>
           label = Element('label', {
             'for': button.id,
           });
           label.update(getButtonLabel(options));
+          return label;
         }
         
         function createButtonElement(toolbar, options) {
@@ -200,15 +232,16 @@
             }
           }
           
-          if (!getButtonParent(options)) {
-            jQuery(button).button();
-          }
+          jQuery(button).button();
 
           return button;
         }
         
         function createToolbarElement(toolbar, options) {
-          var toolbar = new Element('span', { 'class': 'ui-widget ui-corner-all' });
+          var toolbar = new Element('span', { 
+            'id': 'toolbar', 
+            'class': 'ui-widget ui-corner-all' 
+          });
           this.editor.insert({ before: toolbar });
           return toolbar;
         }
@@ -218,7 +251,10 @@
         }
         
         return {
+          addButton: addButton,
+          buttonHandler: buttonHandler,
           addButtonSet: addButtonSet,
+          observeButtonClick: observeButtonClick,
           createButtonGroupElement: createButtonGroupElement,
           createHandlerForCommand: createHandlerForCommand,
           createButtonElement: createButtonElement,
@@ -251,9 +287,9 @@
         { 
           name: 'text-formatting',
           buttons: [
-            { label: 'Bold', type: FancyToolbar.ButtonTypes.checkbox },
-            { label: 'Underline', type: FancyToolbar.ButtonTypes.checkbox },
-            { label: 'Italics', type: FancyToolbar.ButtonTypes.checkbox }
+            { label: 'B', command: 'bold', parameter: null, type: FancyToolbar.ButtonTypes.checkbox },
+            { label: 'U', command: 'underline', parameter: null, type: FancyToolbar.ButtonTypes.checkbox },
+            { label: 'I', command: 'italic', parameter: null, type: FancyToolbar.ButtonTypes.checkbox }
           ]
         },
         { label: 'Link', type: FancyToolbar.ButtonTypes.button }
